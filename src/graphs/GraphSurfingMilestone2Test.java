@@ -28,7 +28,7 @@ import org.junit.Test;
 public class GraphSurfingMilestone2Test {
 
 	// Toggle this to false to speed up early testing process.
-	private static boolean runLivingPeopleGraphTests = true;
+	private static boolean runLivingPeopleGraphTests = true;	
 
 	// Toggle this to false to suppress output.
 	private static boolean verbose = true;

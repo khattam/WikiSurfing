@@ -1,14 +1,18 @@
 package graphs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 
 
@@ -150,14 +154,98 @@ public class AdjacencyMatrixGraph<T> extends Graph<T> {
 
 	@Override
 	public Set<T> stronglyConnectedComponent(T key) {
-		// TODO Auto-generated method stub
-		return null;
+		  if (!hasVertex(key)) {
+		        throw new NoSuchElementException("Vertex not found");
+		    }
+
+		    Set<T> forwardReachable = new HashSet<>();
+		    Set<T> backwardReachable = new HashSet<>();
+
+		    dfs(key, forwardReachable, true);
+		    dfs(key, backwardReachable, false);
+
+		    forwardReachable.retainAll(backwardReachable);
+
+		    return forwardReachable;
 	}
+	
+//	private void dfs(T current, Set<T> visited, boolean forward) {
+//	    visited.add(current);
+//
+//	    Set<T> neighbors = forward ? successorSet(current) : predecessorSet(current);
+//	    for (T neighbor : neighbors) {
+//	        if (!visited.contains(neighbor)) {
+//	            dfs(neighbor, visited, forward);
+//	        }
+//	    }
+//	}
+	
+	private void dfs(T start, Set<T> visited, boolean forward) {
+	    Stack<T> stack = new Stack<>();
+	    stack.push(start);
+
+	    while (!stack.isEmpty()) {
+	        T current = stack.pop();
+
+	        if (!visited.contains(current)) {
+	            visited.add(current);
+
+	            Set<T> neighbors = forward ? successorSet(current) : predecessorSet(current);
+	            for (T neighbor : neighbors) {
+	                if (!visited.contains(neighbor)) {
+	                    stack.push(neighbor);
+	                }
+	            }
+	        }
+	    }
+	}
+	    
 
 	@Override
 	public List<T> shortestPath(T startLabel, T endLabel) {
-		// TODO Auto-generated method stub
-		return null;
+		if (!hasVertex(startLabel) || !hasVertex(endLabel)) {
+	        throw new NoSuchElementException("Start or end vertex not found");
+	    }
+
+	    Map<T, T> predecessors = new HashMap<>();
+	    Set<T> visited = new HashSet<>();
+	    Queue<T> queue = new LinkedList<>();
+	    
+	    queue.add(startLabel);
+	    visited.add(startLabel);
+
+	    boolean pathExists = false;
+
+	    while (!queue.isEmpty()) {
+	        T current = queue.poll();
+
+	        if (current.equals(endLabel)) {
+	            pathExists = true;
+	            break;
+	        }
+
+	        for (T neighbor : successorSet(current)) {
+	            if (!visited.contains(neighbor)) {
+	                visited.add(neighbor);
+	                queue.add(neighbor);
+	                predecessors.put(neighbor, current);
+	            }
+	        }
+	    }
+
+	    if (!pathExists) {
+	        return null;
+	    }
+
+	    List<T> path = new ArrayList<>();
+	    T current = endLabel;
+	    while (current != null) {
+	        path.add(current);
+	        current = predecessors.get(current);
+	    }
+	    Collections.reverse(path);
+
+	    return path;
 	}
 
 	private class EdgeIterator implements Iterator<T> {

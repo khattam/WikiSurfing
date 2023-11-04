@@ -2,4 +2,16 @@ Nacho (footballer, born 1967)
 Tacko Fall
 
 Here's my explanation for how I found this challenge pair...
+
+Nacho (footballer, born 1967)
+Tacko Fall
+
+
+To identify the challenge pair with the longest shortest path, I utilized an iterative BFS approach. 
+For each vertex in the graph, I executed a BFS traversal starting from that vertex. During each BFS run, 
+I tracked the farthest vertex reached from the starting vertex. Once identified, I then calculated the shortest path 
+between the starting vertex and the farthest vertex using the provided shortestPath method. 
+By comparing the lengths of the shortest paths found in each iteration, I was able to pinpoint the challenge pair with the longest shortest path.
+This method ensures a comprehensive search of the graph while efficiently identifying potential challenge pairs.
+
 Given in starter code.

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 public class AdjacencyListGraph<T> extends Graph<T> {
 	Map<T,Vertex> keyToVertex;
@@ -193,51 +194,132 @@ public class AdjacencyListGraph<T> extends Graph<T> {
 		        }
 		    };
 	}
+	private Map<Vertex, Integer> indices = new HashMap<>();
+	private Map<Vertex, Integer> lowlink = new HashMap<>();
+	private Stack<Vertex> stack = new Stack<>();
+	private int index = 0;
+	private List<Set<T>> sccs = new ArrayList<>();
+	private Set<Vertex> visited = new HashSet<>();
+	
 
+
+
+	
 	@Override
 	public Set<T> stronglyConnectedComponent(T key) {
-		// TODO Auto-generated method stub
-		return null;
+	    if (!hasVertex(key)) {
+	        throw new NoSuchElementException("Vertex not found");
+	    }
+
+	    // Clear the previous state
+	    indices.clear();
+	    lowlink.clear();
+	    stack.clear();
+	    sccs.clear();
+	    visited.clear(); // Reset the visited set
+	    index = 0;
+
+	    Vertex start = keyToVertex.get(key);
+	    strongConnect(start);
+
+	    for (Set<T> scc : sccs) {
+	        if (scc.contains(key)) {
+	            return scc;
+	        }
+	    }
+
+	    return Collections.emptySet();
 	}
+	
+	
+	
+	//THis is current
+	
+		
+	private void strongConnect(Vertex v) {
+	    if (visited.contains(v)) {
+	        return;
+	    }
+	    visited.add(v);
+	    
+	    indices.put(v, index);
+	    lowlink.put(v, index);
+	    index++;
+	    stack.push(v);
+
+	    for (Vertex w : v.successors) {
+	        if (!indices.containsKey(w)) {
+	            strongConnect(w);
+	            lowlink.put(v, Math.min(lowlink.get(v), lowlink.get(w)));
+	        } else if (stack.contains(w)) {
+	            lowlink.put(v, Math.min(lowlink.get(v), indices.get(w)));
+	        }
+	    }
+
+	    if (lowlink.get(v).equals(indices.get(v))) {
+	        Set<T> component = new HashSet<>();
+	        Vertex w;
+	        do {
+	            w = stack.pop();
+	            component.add(w.key);
+	        } while (!w.equals(v));
+	        sccs.add(component);
+	    }
+	}
+
+
+	
+
+
 
 	@Override
 	public List<T> shortestPath(T startLabel, T endLabel) {
-		  if (!hasVertex(startLabel) || !hasVertex(endLabel)) {
-		        throw new NoSuchElementException("Start or end vertex not found");
-		    }
+		 // Check if the vertices exist
+	    if (!hasVertex(startLabel) || !hasVertex(endLabel)) {
+	        throw new NoSuchElementException("Start or end vertex not found");
+	    }
 
-		    Queue<T> queue = new LinkedList<>();
-		    Map<T, T> predecessors = new HashMap<>();
-		    Set<T> visited = new HashSet<>();
-		    queue.add(startLabel);
-		    visited.add(startLabel);
-		    boolean pathExists = false;
+	    Queue<T> queue = new LinkedList<>();
+	    Map<T, T> predecessors = new HashMap<>();
+	    Set<T> visited = new HashSet<>();
+	    
+	    queue.add(startLabel);
+	    visited.add(startLabel);
 
-		    while (!queue.isEmpty()) {
-		        T current = queue.poll();
-		        if (current.equals(endLabel)) {
-		            pathExists = true;
-		            break;
-		        }
+	    boolean pathExists = false;
 
-		        for (T neighbor : successorSet(current)) {
-		            if (!visited.contains(neighbor)) {
-		                predecessors.put(neighbor, current);
-		                visited.add(neighbor);
-		                queue.add(neighbor);
-		            }
-		        }
-		    }
+	    while (!queue.isEmpty()) {
+	        T current = queue.poll();
 
-		    if (!pathExists) {
-		        return Collections.emptyList(); // or throw an appropriate exception.
-		    }
+	        // If we reached the end vertex, break out of the loop
+	        if (current.equals(endLabel)) {
+	            pathExists = true;
+	            break;
+	        }
 
-		    List<T> path = new LinkedList<>();
-		    for (T at = endLabel; at != null; at = predecessors.get(at)) {
-		        path.add(0, at);
-		    }
-		    return path;
+	        for (T neighbor : successorSet(current)) {
+	            if (!visited.contains(neighbor)) {
+	                predecessors.put(neighbor, current);
+	                visited.add(neighbor);
+	                queue.add(neighbor);
+	            }
+	        }
+	    }
+
+	    // If there's no path from startLabel to endLabel
+	    if (!pathExists) {
+	       return null;
+	    }
+
+	    // Reconstruct the path from endLabel to startLabel
+	    List<T> path = new ArrayList<>();
+	    T current = endLabel;
+	    while (current != null) {
+	        path.add(current);
+	        current = predecessors.get(current);
+	    }
+	    Collections.reverse(path); // Reverse the path to get the correct order from start to end
+	    return path;
 	}
 
 }
